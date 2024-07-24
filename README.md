@@ -14,7 +14,7 @@
  
  <br>
  
-  ### Pra conhecer um pouco mais sobre minha pessoa, me segue nas redes sociais abaixo!
+  ### Pra conhecer um pouco mais sobre minha pessoa, segue nas redes sociais abaixo!
  
 <div> 
  
