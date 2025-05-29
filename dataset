@@ -117,12 +117,12 @@ yuzwa_merged.markers %>%
   dplyr::filter(avg_log2FC > 1)
 
 cluster0.markers <- FindMarkers(yuzwa_merged, ident.1 = 0, logfc.threshold = 0.25, test.use = "roc", only.pos = TRUE)
-VlnPlot(yuzwa_merged, features = c("MS4A1", "CD79A"))
+VlnPlot(yuzwa_merged, features = c("Emx1"))
 
 # you can plot raw counts as well
-VlnPlot(yuzwa_merged, features = c("NKG7", "PF4"), slot = "counts", log = TRUE)
+VlnPlot(yuzwa_merged, features = c("Emx1"), slot = "counts", log = TRUE)
 
-FeaturePlot(yuzwa_merged, features = c("MS4A1", "GNLY", "CD3E", "CD14", "FCER1A", "FCGR3A", "LYZ", "PPBP", "CD8A"))
+FeaturePlot(yuzwa_merged, features = c("Pax6", "Sox2", "Eomes", "Tubb3", "Tbr1")) & ylab("Merged")
 
 yuzwa_merged.markers %>%
   group_by(cluster) %>%
@@ -131,9 +131,11 @@ yuzwa_merged.markers %>%
   ungroup() -> top10
 DoHeatmap(yuzwa_merged, features = top10$gene) + NoLegend()
 
+levels(yuzwa_merged)
+
 #Assigning cell type identity to clusters
-new.cluster.ids <- c("Naive CD4 T", "CD14+ Mono", "Memory CD4 T", "B", "CD8 T", "FCGR3A+ Mono",
-                     "NK", "DC", "Platelet")
+new.cluster.ids <- c("0", "1", "2", "3", "4", "5",
+                     "6", "7", "8", "9", "10", "11")
 names(new.cluster.ids) <- levels(yuzwa_merged)
 yuzwa_merged <- RenameIdents(yuzwa_merged, new.cluster.ids)
 DimPlot(yuzwa_merged, reduction = "umap", label = TRUE, pt.size = 0.5) + NoLegend()
@@ -141,4 +143,4 @@ DimPlot(yuzwa_merged, reduction = "umap", label = TRUE, pt.size = 0.5) + NoLegen
 plot <- DimPlot(yuzwa_merged, reduction = "umap", label = TRUE, label.size = 4.5) + xlab("UMAP 1") + ylab("UMAP 2") +
   theme(axis.title = element_text(size = 18), legend.text = element_text(size = 18)) + guides(colour = guide_legend(override.aes = list(size = 10)))
 ggsave(filename = ".~/Documentos/data/gse/yuzwa_merged3k_umap.jpg", height = 7, width = 12, plot = plot, quality = 50)
-saveRDS(yuzwa_merged, file = "~/Documentos/data/gse/yuzwa_merged.rds")
+'Y1saveRDS(yuzwa_merged, file = "~/Documentos/data/gse/yuzwa_merged.rds")
