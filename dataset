@@ -3,12 +3,14 @@ library(Seurat)
 library(patchwork)
 library(ggplot2)
 
+setwd("~/Documentos/Yuzwa2017")
+
 # Load the yuzwa_merged dataset
-yuzwa.data11 <- read.table("~/Documentos/data/gse/GSM2861510_E115_All_Cells_DGE.txt.gz",
+yuzwa.data11 <- read.table("gse/GSM2861510_E115_All_Cells_DGE.txt.gz",
                         sep = "\t", header = TRUE, row.names = 1)
-yuzwa.data13 <- read.table("~/Documentos/data/gse/GSM2861511_E135_All_Cells_DGE.txt.gz",
+yuzwa.data13 <- read.table("gse/GSM2861511_E135_All_Cells_DGE.txt.gz",
                           sep = "\t", header = TRUE, row.names = 1)
-yuzwa.data17 <- read.table("~/Documentos/data/gse/GSM2861514_E175_All_Cells_DGE.txt.gz",
+yuzwa.data17 <- read.table("gse/GSM2861514_E175_All_Cells_DGE.txt.gz",
                           sep = "\t", header = TRUE, row.names = 1)
 
 # Initialize the Seurat object with the raw (non-normalized data).
@@ -20,10 +22,6 @@ yuzwa.11@meta.data$timepoint = "E11"
 yuzwa.13@meta.data$timepoint = "E13"
 yuzwa.17@meta.data$timepoint = "E17"
 
-View(yuzwa.11@meta.data)
-View(yuzwa.13@meta.data)
-View(yuzwa.17@meta.data)
-
 # Unindo os três objetos Seurat, em dados paralelos
 yuzwa_merged <- merge(yuzwa.11, y = c(yuzwa.13, yuzwa.17), 
                      add.cell.ids = c("E11", "E13", "E17"), 
@@ -34,7 +32,6 @@ yuzwa_merged <- JoinLayers(yuzwa_merged)
 
 # Verificando o objeto combinado
 yuzwa_merged
-View(yuzwa_merged@meta.data)
 
 # The [[ operator can add columns to object metadata. This is a great place to stash QC stats
 yuzwa_merged[["percent.mt"]] <- PercentageFeatureSet(yuzwa_merged, pattern = "^mt-")
@@ -48,11 +45,10 @@ plot1 <- FeatureScatter(yuzwa_merged, feature1 = "nCount_RNA", feature2 = "perce
 plot2 <- FeatureScatter(yuzwa_merged, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
 plot1 + plot2
 
-yuzwa_merged <- subset(yuzwa_merged, subset = nFeature_RNA > 200 & nFeature_RNA < 2500 & percent.mt < 5)
+yuzwa_merged <- subset(yuzwa_merged, subset = nFeature_RNA > 200 & nFeature_RNA < 2500 & percent.mt < 10)
 
 #Normalizes the feature expression measurements for each cell by the total expression, multiplies this by a scale factor (10,000 by default)
 yuzwa_merged <- NormalizeData(yuzwa_merged, normalization.method = "LogNormalize", scale.factor = 10000)
-yuzwa_merged <- NormalizeData(yuzwa_merged)
 
 #Identification of highly variable features
 yuzwa_merged <- FindVariableFeatures(yuzwa_merged, selection.method = "vst", nfeatures = 2000)
@@ -78,7 +74,7 @@ print(yuzwa_merged[["pca"]], dims = 1:5, nfeatures = 5)
 
 VizDimLoadings(yuzwa_merged, dims = 1:2, reduction = "pca")
 
-DimPlot(yuzwa_merged, reduction = "pca") + NoLegend()
+DimPlot(yuzwa_merged, reduction = "pca")
 
 #Allows for easy exploration of the primary sources of heterogeneity in a dataset[...]
 DimHeatmap(yuzwa_merged, dims = 1, cells = 500, balanced = TRUE)
@@ -97,50 +93,116 @@ head(Idents(yuzwa_merged), 5)
 
 #Run non-linear dimensional reduction
 yuzwa_merged <- RunUMAP(yuzwa_merged, dims = 1:10)
-# note that you can set `label = TRUE` or use the LabelClusters function to help label
-# individual clusters
-DimPlot(yuzwa_merged, reduction = "umap")
-saveRDS(yuzwa_merged, file = "~/Documentos/data/gse/yuzwa_merged_tutorial.rds")
-
-# find all markers of cluster 2
-cluster2.markers <- FindMarkers(yuzwa_merged, ident.1 = 2)
-head(cluster2.markers, n = 5)
-# find all markers distinguishing cluster 5 from clusters 0 and 3
-cluster5.markers <- FindMarkers(yuzwa_merged, ident.1 = 5, ident.2 = c(0, 3))
-head(cluster5.markers, n = 5)
 
 # find markers for every cluster compared to all remaining cells, report only the positive
 # ones
 yuzwa_merged.markers <- FindAllMarkers(yuzwa_merged, only.pos = TRUE)
-yuzwa_merged.markers %>%
+levels(yuzwa_merged)
+
+#Inicio da observação e direcionamento;
+
+VlnPlot(yuzwa_merged, features = c("Pax6", "Eomes", "Tubb3"))  
+FeaturePlot(yuzwa_merged, features = c("Pax6", "Eomes", "Tubb3"), split.by = "timepoint")
+
+VlnPlot(yuzwa_merged, features = c("Emx1", "Pax6"))
+
+#encontrando os marcadores com maior avg_log2FC(magnitude da diferença de expressão)
+top_markers <- yuzwa_merged.markers %>%
   group_by(cluster) %>%
-  dplyr::filter(avg_log2FC > 1)
+  dplyr::filter(avg_log2FC > 1) %>%
+  slice_max(avg_log2FC, n = 5) %>%
+  arrange(cluster)
 
-cluster0.markers <- FindMarkers(yuzwa_merged, ident.1 = 0, logfc.threshold = 0.25, test.use = "roc", only.pos = TRUE)
-VlnPlot(yuzwa_merged, features = c("Emx1"))
+print(top_markers, n = Inf)
+View(top_markers)
 
-# you can plot raw counts as well
-VlnPlot(yuzwa_merged, features = c("Emx1"), slot = "counts", log = TRUE)
+# Filtrar diretamente no top_markers
+top_markers %>%
+  filter(gene %in% c("Emx1", "Dlx1", "Gad1"))
 
-FeaturePlot(yuzwa_merged, features = c("Pax6", "Sox2", "Eomes", "Tubb3", "Tbr1")) & ylab("Merged")
+# Média de expressão por cluster
+avg_exp <- AggregateExpression(yuzwa_merged, features = c("Emx1", "Dlx1", "Gad1"))$RNA
+print(avg_exp)
+
+# UMAP com expressão
+FeaturePlot(yuzwa_merged, features = c("Pax6", "Sox2", "Eomes", "Tubb3", "Tbr1"), label = TRUE)
+
+Idents(yuzwa_merged) <- "seurat_clusters"  # caso não esteja ainda
+genes <- c("Pax6", "Sox2", "Eomes", "Tubb3", "Tbr1")
+cluster_pct <- sapply(genes, function(gene) {
+  tapply(GetAssayData(yuzwa_merged, slot = "data")[gene, ] > 0, 
+         Idents(yuzwa_merged), 
+         mean) * 100
+})
+
+# Converte em tibble, observando a porcentagem de cada marcador nos clusters
+as.data.frame(cluster_pct) %>%
+  tibble::rownames_to_column("cluster")
+
+# Gráfico de violino
+VlnPlot(yuzwa_merged, features = c("Emx1", "Dlx1", "Gad1"), pt.size = 0.1)
+
+
+DimPlot(yuzwa_merged, split.by = "timepoint", label = TRUE)  # Verifique se APs/IPs estão em E11-E13
+
+FeaturePlot(yuzwa_merged, features = c("Emx1", "Gad1", "Dlx1")) | DimPlot(yuzwa_merged, label = TRUE)
+
+FeaturePlot(yuzwa_merged, features = c("Pax6", "Eomes", "Tubb3", "Dlx1"), split.by = "timepoint", label = TRUE)
+
+#Sessão emx1 positivo filtrado(caso precise)
+yuzwa_emx1_positivo <- subset(
+  yuzwa_merged, 
+  subset = Emx1 > 0  # Limiar ajustável (ex.: > 0, > 0.5, > 1)
+)
+
+levels(Idents(yuzwa_emx1_positivo))
+DimPlot(yuzwa_emx1_positivo, split.by = "timepoint", label = TRUE)  # Verifique se APs/IPs estão em E11-E13
+
+FeaturePlot(yuzwa_emx1_positivo, features = c("Emx1", "Gad1", "Dlx1")) | DimPlot(yuzwa_emx1_positivo, label = TRUE)
+
+# Verificação
+VlnPlot(yuzwa_emx1_positivo, features = "Emx1")  # Só células positivas!
+
+# Gráficos de violino ou UMAP para os marcadores
+VlnPlot(yuzwa_emx1_positivo, features = c("Pax6", "Sox2", "Eomes", "Tubb3", "Tbr1"))
+#comparando
+FeaturePlot(yuzwa_merged, features = c("Pax6","Sox2", "Eomes", "Tubb3","Tbr1"))
+FeaturePlot(yuzwa_emx1_positivo, features = c("Pax6", "Sox2", "Eomes", "Tubb3", "Tbr1"))
+#fim da sessão
 
 yuzwa_merged.markers %>%
   group_by(cluster) %>%
   dplyr::filter(avg_log2FC > 1) %>%
   slice_head(n = 10) %>%
   ungroup() -> top10
-DoHeatmap(yuzwa_merged, features = top10$gene) + NoLegend()
 
-levels(yuzwa_merged)
+View(yuzwa_merged.markers)
+
+DoHeatmap(yuzwa_merged, features = top10$gene) + NoLegend()
+DoHeatmap(yuzwa_merged, features = c("Pax6", "Eomes", "Tubb3", "Sox2", "Tbr1"))
 
 #Assigning cell type identity to clusters
-new.cluster.ids <- c("0", "1", "2", "3", "4", "5",
-                     "6", "7", "8", "9", "10", "11")
-names(new.cluster.ids) <- levels(yuzwa_merged)
-yuzwa_merged <- RenameIdents(yuzwa_merged, new.cluster.ids)
-DimPlot(yuzwa_merged, reduction = "umap", label = TRUE, pt.size = 0.5) + NoLegend()
+new.cluster.ids <- c(
+  "Non-neuronal",  # 0 (sem marcadores clássicos)
+  "ENs",           # 1 (Sstr2+)
+  "ENs",           # 2 (Npy2r+)
+  "ENs",           # 3 (Rxrg+)
+  "ENs",           # 4 (Lamp5+)
+  "ENs",           # 5 (Th+)
+  "Non-neuronal",  # 6
+  "Non-neuronal",  # 7
+  "Non-neuronal",  # 8
+  "Non-neuronal",  # 9 (Cd34+)
+  "Non-neuronal",  # 10
+  "Non-neuronal",  # 11
+  "Non-neuronal",  # 12 (Krt15+)
+  "Microglia"      # 13 (Gpr34+)
+)
 
-plot <- DimPlot(yuzwa_merged, reduction = "umap", label = TRUE, label.size = 4.5) + xlab("UMAP 1") + ylab("UMAP 2") +
-  theme(axis.title = element_text(size = 18), legend.text = element_text(size = 18)) + guides(colour = guide_legend(override.aes = list(size = 10)))
-ggsave(filename = ".~/Documentos/data/gse/yuzwa_merged3k_umap.jpg", height = 7, width = 12, plot = plot, quality = 50)
-'Y1saveRDS(yuzwa_merged, file = "~/Documentos/data/gse/yuzwa_merged.rds")
+names(new.cluster.ids) <- levels(yuzwa_merged)
+yuzwa_merged_id <- RenameIdents(yuzwa_merged_id, new.cluster.ids)
+DimPlot(yuzwa_merged_id, reduction = "umap", label = TRUE, pt.size = 0.5, split.by = "timepoint")
+
+#saveRDS(yuzwa_merged, file = "~/Documentos/data/Yuzwa2017/gse/yuzwa_merged.rds")
+DimPlot(yuzwa_merged_id, reduction = "umap")
+#saveRDS(yuzwa_merged, file = "~/Documentos/data/Yuzwa2017/gse/database/yuzwa_merged_tutorial.rds")
