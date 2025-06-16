@@ -86,13 +86,17 @@ ElbowPlot(yuzwa_merged)
 
 #Seurat applies a graph-based clustering approach, building upon initial strategies in.(Clouster the cells)
 yuzwa_merged <- FindNeighbors(yuzwa_merged, dims = 1:10)
-yuzwa_merged <- FindClusters(yuzwa_merged, resolution = 0.5)
+yuzwa_merged <- FindClusters(yuzwa_merged, resolution = c(0.1,0.3,0.5,0.7,1)) #aumentando a resolução
+View(yuzwa_merged@meta.data)
 
+DimPlot(yuzwa_merged, group.by = "RNA_snn_res.0.1", label = TRUE) #verificando 
+Idents(yuzwa_merged)
 # Look at cluster IDs of the first 5 cells
 head(Idents(yuzwa_merged), 5)
 
 #Run non-linear dimensional reduction
 yuzwa_merged <- RunUMAP(yuzwa_merged, dims = 1:10)
+DimPlot(yuzwa_merged, reduction = "umap")
 
 # find markers for every cluster compared to all remaining cells, report only the positive
 # ones
