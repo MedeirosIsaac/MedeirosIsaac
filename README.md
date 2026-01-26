@@ -1,5 +1,4 @@
 ## Hi, I'm Isaac! 😁  
-<img src="https://raw.githubusercontent.com/MicaelliMedeiros/micaellimedeiros/master/image/computer-illustration.png" alt="ilustração de um computador" min-width="400px" max-width="400px" width="400px" align="right">
 
 [![Overview](https://img.shields.io/static/v1?label=Overview&message=MedeirosIsaac&color=25067D&labelColor=CD719F&style=flat&logo=GitHub)](https://github.com/MedeirosIsaac)  
 
