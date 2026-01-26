@@ -2,8 +2,10 @@
 
  <div>
    <a href="https://github.com/MedeirosIsaac">
-   <img height="180em" src="https://github-readme-stats.vercel.app/api?username=MedeirosIsaac&show_icons=true&theme=panda&include_all_commits=true&count_private=true"/>
+   <img height="180em" src="https://github-readme-stats.vercel.app/api?username=MedeirosIsaac&show_icons=true&theme=panda&hide=commits=true&count_private=true"/>
    <img height="180em" src="https://github-readme-stats.vercel.app/api/top-langs/?username=MedeirosIsaac&layout=compact&langs_count=6&theme=panda"/>
+   <img align="center" alt="C++" height="30" width="40" src="https://raw.githubusercontent.com/devicons/devicon/master/icons/cplusplus/cplusplus-original.svg">
+   <img align="center" alt="R" height="30" width="40" src="https://raw.githubusercontent.com/devicons/devicon/master/icons/r/r-original.svg">
 </div>
 
 <div style="display: inline-block">
