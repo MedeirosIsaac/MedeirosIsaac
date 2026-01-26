@@ -9,7 +9,7 @@
 
 ### 🌱 Currently Learning  
 🧩 Iniciated Bioinformatics workflows & Nextflow  
-⚙️ High-performance algorithms in C++  
+⚙️ Discovering algorithms in C++  
 
 ### 🚀 Projects I've Worked On  
 🕸️ [**hdWGCNA Analysis**](https://github.com/MedeirosIsaac) - Gene co-expression modules analysis.  
@@ -22,7 +22,7 @@
 | 🧬 **Bioinformatics** | 💻 **Computing** | ⚙️ **Systems** |
 |:-------------------:|:---------------:|:-------------:|
 | Genomic Data Analysis | Data Structures | Docker & DevOps |
-| Transcriptomics (WGCNA)| C++ & Algorithms | System Administration |
+| Transcriptomics (WGCNA)| R & Python | System Administration |
 
 -----
 
